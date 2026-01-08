@@ -2,7 +2,7 @@ import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-from python_speech_features import mfcc, logfbank
+from python_speech_features import logfbank
 
 # Permitir importar audio_loader desde src/
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
