@@ -2,13 +2,12 @@ import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.signal import spectrogram
 
 # Permitir importar audio_loader desde src/
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from audio_loader import load_audio
-# -------------------------------
-# Audios seleccionados (2 por clase)
-# -------------------------------
+
 AUDIO_FILES = {
     "exterior": [
         "2-117615-B-48.wav",
@@ -34,11 +33,8 @@ AUDIO_FILES = {
 
 BASE_PATH = "data"
 
-# -------------------------------
-# Figura conjunta dominio temporal
-# -------------------------------
-fig, axes = plt.subplots(5, 2, figsize=(14, 12), sharex=False)
-fig.suptitle("Representación temporal de las señales acústicas analizadas", fontsize=16)
+fig, axes = plt.subplots(5, 2, figsize=(14, 12), sharex=True, sharey=True)
+fig.suptitle("Espectrogramas (Spectrogram) de las señales acústicas analizadas", fontsize=16)
 
 row = 0
 for clase, files in AUDIO_FILES.items():
@@ -46,13 +42,25 @@ for clase, files in AUDIO_FILES.items():
         audio_path = os.path.join(BASE_PATH, file)
         x, sr = load_audio(audio_path)
 
-        time = np.arange(len(x)) / sr
+        # Spectrograma
+        f, t, Sxx = spectrogram(
+            x,
+            fs=sr,
+            window="hann",
+            nperseg=1024,
+            noverlap=512,
+            scaling="density",
+            mode="magnitude"
+        )
+
+        # Escala logarítmica (dB)
+        Sxx_db = 20 * np.log10(Sxx + 1e-10)
 
         ax = axes[row, col]
-        ax.plot(time, x)
+        ax.pcolormesh(t, f, Sxx_db, shading="gouraud")
         ax.set_title(f"{clase} | {file}", fontsize=9)
-        ax.set_ylabel("Amplitud")
-        ax.grid(True)
+        ax.set_ylabel("Frecuencia (Hz)")
+        ax.set_ylim(0, 5000)
 
     row += 1
 
